@@ -36,20 +36,25 @@ public class UserController: ControllerBase
         return Ok(users);
     }
 
-    public record LoginModel(string Email, string Password);
+    public record LoginModel(string UserName, string Password);
 
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginModel loginModel)
     {
-        var result = await _signInManager.PasswordSignInAsync(loginModel.Email, loginModel.Password, true, false);
-        var currentUserId = await _appDbContext.Users.Where(x => x.UserName == User.Identity.Name).Select(x => x.Id).FirstOrDefaultAsync();
+        var result = await _signInManager.PasswordSignInAsync(loginModel.UserName, loginModel.Password, true, false);
+        var currentUserId = await _appDbContext.Users
+            .Where(x => x.UserName == $"{loginModel.UserName}")
+            .Select(x => x.Id)
+            .ToListAsync();
+
         if (result.Succeeded)
         {
-            return Ok(currentUserId);
+            return Ok(new { userid = currentUserId });
         }
 
         return Unauthorized();
     }
+
 
     public record RegistrationModel(string UserName, string Password, string LastName, string SurName, string Email, string phoneNumber, string Address);
     [HttpPost("signup")]
