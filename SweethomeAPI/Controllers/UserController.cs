@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using SweetHome.DAL.Interfaces;
 using Sweethome.Domain;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
+using SweetHome.DAL;
 
 namespace SweethomeAPI.Controllers;
 
@@ -14,15 +15,17 @@ public class UserController: ControllerBase
     private readonly UserManager<User> _userManager;
     private readonly SignInManager<User> _signInManager;
     private readonly IBaseRepository<User> _userRepository;
-    
-    public UserController(IBaseRepository<User> userRepository, SignInManager<User> signInManager, UserManager<User> userManager)
+    private readonly AppDbContext  _appDbContext;
+
+    public UserController(IBaseRepository<User> userRepository, SignInManager<User> signInManager, UserManager<User> userManager, AppDbContext appDbContext)
     {
         _userRepository = userRepository;
         _signInManager = signInManager;
         _userManager = userManager;
+        _appDbContext = appDbContext;
     }
     
-    [Authorize]
+    //[Authorize]
     [HttpGet]
     public async Task<IActionResult> GetUsers()
     {
@@ -33,16 +36,16 @@ public class UserController: ControllerBase
         return Ok(users);
     }
 
-    public record LoginModel(string UserName, string Password);
+    public record LoginModel(string Email, string Password);
 
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginModel loginModel)
     {
-        var result = await _signInManager.PasswordSignInAsync(loginModel.UserName, loginModel.Password, true, false);
-
+        var result = await _signInManager.PasswordSignInAsync(loginModel.Email, loginModel.Password, true, false);
+        var currentUserId = await _appDbContext.Users.Where(x => x.UserName == User.Identity.Name).Select(x => x.Id).FirstOrDefaultAsync();
         if (result.Succeeded)
         {
-            return Ok();
+            return Ok(currentUserId);
         }
 
         return Unauthorized();
