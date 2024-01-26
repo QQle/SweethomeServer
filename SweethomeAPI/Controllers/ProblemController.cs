@@ -18,8 +18,6 @@ namespace SweethomeAPI.Controllers
 
         public ProblemController(IBaseRepository<Problem> baseRepository)
         {
-
-
             _baseRepository = baseRepository;
         }
 

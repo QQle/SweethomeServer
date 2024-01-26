@@ -24,16 +24,18 @@ public class UserController: ControllerBase
         _userManager = userManager;
         _appDbContext = appDbContext;
     }
-    
+
     //[Authorize]
-    [HttpGet]
-    public async Task<IActionResult> GetUsers()
+    [HttpGet("getAllProblemsByUserId")]
+    public async Task<IActionResult> GetProblemsByUserId(string userId)
     {
-        var users = await _userRepository
-            .GetAll()
+
+        var users = await _appDbContext.Users
+            .Where(x => x.Id == $"{userId}")
+            .Select(x => x.Problem)
             .ToListAsync();
 
-        return Ok(users);
+        return Ok(new { usersProblems = users });
     }
 
     public record LoginModel(string UserName, string Password);
