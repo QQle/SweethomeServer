@@ -30,7 +30,7 @@ builder.Services.AddIdentity<User,IdentityRole>(options =>
 }).AddEntityFrameworkStores<AppDbContext>();
 
 builder.Services.AddScoped<IBaseRepository<User>, BaseRepository<User>>();
-
+builder.Services.AddScoped<IBaseRepository<Problem>, BaseRepository<Problem>>();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>

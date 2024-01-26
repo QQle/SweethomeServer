@@ -58,7 +58,7 @@ public class UserController: ControllerBase
 
     public record RegistrationModel(string UserName, string Password, string LastName, string SurName, string Email, string phoneNumber, string Address);
     [HttpPost("signup")]
-    public async Task<IActionResult> Registration(RegistrationModel registerModel)
+    public async Task<IActionResult> Registration([FromBody] RegistrationModel registerModel)
     {
         var user = new User()
         {
@@ -67,16 +67,19 @@ public class UserController: ControllerBase
             Surname = registerModel.SurName,
             Email = registerModel.Email,
             PhoneNumber = registerModel.phoneNumber,
-            Address = registerModel.Address
-
+            Address = registerModel.Address,
         };
-        
-        var result = await _userManager.CreateAsync(user, registerModel.Password);
+        var result = await _userManager.
+            CreateAsync(user, $"{registerModel.Password}");
 
         if (result.Succeeded)
         {
             await _signInManager.SignInAsync(user, true);
-            return Ok();
+            var currentUserId = await _appDbContext.Users
+            .Where(x => x.UserName == $"{registerModel.UserName}")
+            .Select(x => x.Id)
+            .ToListAsync();
+            return Ok(new { userId = currentUserId });
         }
         
         return Unauthorized(result.Errors);

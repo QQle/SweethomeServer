@@ -31,10 +31,6 @@ namespace SweetHome.DAL
                 builder.Property(x => x.Id).ValueGeneratedOnAdd();
                 builder.Property(x => x.Problems).HasMaxLength(100);
                 builder.Property(x => x.Description).HasMaxLength(700);
-                builder.Property(x => x.Rewiew).HasMaxLength(200);
-
-
-
             });
 
         }
