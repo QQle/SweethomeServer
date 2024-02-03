@@ -33,9 +33,9 @@ public class UserController: ControllerBase
         var users = await _appDbContext.Users
             .Where(x => x.Id == $"{userId}")
             .Select(x => x.Problem)
-            .ToListAsync();
+            .FirstOrDefaultAsync();
 
-        return Ok(new { usersProblems = users });
+        return Ok(users);
     }
 
     public record LoginModel(string UserName, string Password);
@@ -43,19 +43,26 @@ public class UserController: ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginModel loginModel)
     {
+ 
         var result = await _signInManager.PasswordSignInAsync(loginModel.UserName, loginModel.Password, true, false);
-        var currentUserId = await _appDbContext.Users
-            .Where(x => x.UserName == $"{loginModel.UserName}")
-            .Select(x => x.Id)
-            .ToListAsync();
+
 
         if (result.Succeeded)
         {
-            return Ok(new { userid = currentUserId });
+
+            var currentUser = await _appDbContext.Users
+                .FirstOrDefaultAsync(x => x.UserName == loginModel.UserName);
+
+
+            if (currentUser != null)
+            {
+                return Ok(new { userid = currentUser.Id });
+            }
         }
 
         return Unauthorized();
     }
+
 
 
     public record RegistrationModel(string UserName, string Password, string LastName, string SurName, string Email, string phoneNumber, string Address);
