@@ -13,16 +13,18 @@ namespace SweethomeAPI.Controllers;
 public class UserController: ControllerBase
 {
     private readonly UserManager<User> _userManager;
+    private readonly RoleManager<IdentityRole> _roleManager;
     private readonly SignInManager<User> _signInManager;
     private readonly IBaseRepository<User> _userRepository;
     private readonly AppDbContext  _appDbContext;
 
-    public UserController(IBaseRepository<User> userRepository, SignInManager<User> signInManager, UserManager<User> userManager, AppDbContext appDbContext)
+    public UserController(IBaseRepository<User> userRepository, SignInManager<User> signInManager, UserManager<User> userManager, AppDbContext appDbContext, RoleManager<IdentityRole> roleManager)
     {
         _userRepository = userRepository;
         _signInManager = signInManager;
         _userManager = userManager;
         _appDbContext = appDbContext;
+        _roleManager = roleManager;
     }
 
     //[Authorize]
@@ -33,9 +35,9 @@ public class UserController: ControllerBase
         var users = await _appDbContext.Users
             .Where(x => x.Id == $"{userId}")
             .Select(x => x.Problem)
-            .ToListAsync();
+            .FirstOrDefaultAsync();
 
-        return Ok(new { usersProblems = users });
+        return Ok(users);
     }
 
     public record LoginModel(string UserName, string Password);
@@ -58,7 +60,7 @@ public class UserController: ControllerBase
     }
 
 
-    public record RegistrationModel(string UserName, string Password, string LastName, string SurName, string Email, string phoneNumber, string Address);
+    public record RegistrationModel(string UserName, string Password, string LastName, string SurName, string Email, string phoneNumber, string Address, string Role);
     [HttpPost("signup")]
     public async Task<IActionResult> Registration([FromBody] RegistrationModel registerModel)
     {
@@ -71,19 +73,33 @@ public class UserController: ControllerBase
             PhoneNumber = registerModel.phoneNumber,
             Address = registerModel.Address,
         };
-        var result = await _userManager.
-            CreateAsync(user, $"{registerModel.Password}");
-
-        if (result.Succeeded)
+        if (await _roleManager.RoleExistsAsync(registerModel.Role))
         {
+            var result = await _userManager.
+            CreateAsync(user, registerModel.Password);
             await _signInManager.SignInAsync(user, true);
             var currentUserId = await _appDbContext.Users
-            .Where(x => x.UserName == $"{registerModel.UserName}")
+            .Where(x => x.UserName == registerModel.UserName)
             .Select(x => x.Id)
             .ToListAsync();
+
+            if (!result.Succeeded)
+            {
+                return BadRequest("Ошибка создания пользователя");
+            }
+            await _userManager.AddToRoleAsync(user, registerModel.Role);
+             
             return Ok(new { userId = currentUserId });
+
         }
-        
-        return Unauthorized(result.Errors);
+        else
+        {
+            return BadRequest("Роли не существует");
+        }
+
+
+       
     }
+
+   
 }

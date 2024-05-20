@@ -34,8 +34,6 @@ namespace SweethomeAPI.Controllers
                 DateOfsolution = createProblem.DateOfSolution,
                 UserId = createProblem.UserId
 
-
-
             };
 
             var result = await _baseRepository

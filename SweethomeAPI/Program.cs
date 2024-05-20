@@ -27,7 +27,7 @@ builder.Services.AddIdentity<User,IdentityRole>(options =>
     options.Password.RequiredLength = 5;
     options.Password.RequireNonAlphanumeric = false;
     options.Password.RequireUppercase = false;
-}).AddEntityFrameworkStores<AppDbContext>();
+}).AddDefaultTokenProviders().AddEntityFrameworkStores<AppDbContext>();
 
 builder.Services.AddScoped<IBaseRepository<User>, BaseRepository<User>>();
 builder.Services.AddScoped<IBaseRepository<Problem>, BaseRepository<Problem>>();

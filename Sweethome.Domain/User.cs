@@ -9,8 +9,6 @@ namespace Sweethome.Domain
         public string? LastName { get; set; }
         public string? Address { get; set; }
         public bool? Subscribe { get; set; }
-
-
         public List<Problem>? Problem { get; set; }
     }
 }

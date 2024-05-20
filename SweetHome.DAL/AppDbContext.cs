@@ -11,7 +11,7 @@ namespace SweetHome.DAL
         {
             Database.EnsureCreated();
         }
-
+        public DbSet<Problem> Problems { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -22,8 +22,9 @@ namespace SweetHome.DAL
                 builder.Property(x => x.LastName).HasMaxLength(100);
                 builder.Property(x => x.Address).HasMaxLength(200);
 
-                builder.HasMany(x => x.Problem)
-                    .WithOne(x => x.User);
+                builder.HasMany(x => x.Problem)  
+                .WithOne(x => x.User)
+                .HasForeignKey(x => x.UserId);
             });
             modelBuilder.Entity<Problem>().ToTable("Problems");
             modelBuilder.Entity<Problem>(builder =>
