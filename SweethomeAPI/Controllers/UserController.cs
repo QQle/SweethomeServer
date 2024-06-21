@@ -81,7 +81,7 @@ public class UserController: ControllerBase
             var currentUserId = await _appDbContext.Users
             .Where(x => x.UserName == registerModel.UserName)
             .Select(x => x.Id)
-            .ToListAsync();
+            .FirstOrDefaultAsync();
 
             if (!result.Succeeded)
             {

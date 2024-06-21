@@ -53,6 +53,18 @@ namespace SweethomeAPI.Controllers
 
             return Ok("Статус заявки успешно обновлен.");
         }
+        [HttpGet("GetAllProblems")]
+        public async Task<IActionResult> GetAllProblems()
+        {
+            if (!await IsCurrentUserInRole(ADMINISTRATOR))
+            {
+                return BadRequest("У вас нет доступа для этой операции.");
+            }
 
+            var result = await _appDbContext.Problems.ToListAsync();
+                
+
+            return Ok(result);
+        }
     }
 }

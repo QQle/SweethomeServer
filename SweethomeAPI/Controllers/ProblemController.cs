@@ -32,7 +32,8 @@ namespace SweethomeAPI.Controllers
                 Problems = createProblem.Problem,
                 Description = createProblem.Description,
                 DateOfsolution = createProblem.DateOfSolution,
-                UserId = createProblem.UserId
+                UserId = createProblem.UserId,
+               
 
             };
 

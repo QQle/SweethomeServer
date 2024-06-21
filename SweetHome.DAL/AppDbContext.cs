@@ -11,7 +11,7 @@ namespace SweetHome.DAL
         {
             Database.EnsureCreated();
         }
-        public DbSet<Problem> Problems { get; set; }
+        public DbSet<Problem> Problem { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
