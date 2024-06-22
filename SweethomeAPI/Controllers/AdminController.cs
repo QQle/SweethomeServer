@@ -14,33 +14,21 @@ namespace SweethomeAPI.Controllers
     {
         private readonly AppDbContext _appDbContext;
         private readonly UserManager<User> _userManager;
-        public const string ADMINISTRATOR = "Administrator";
+        public const string ADMINISTRATOR = "Admin";
         public AdminController( AppDbContext appDbContext , UserManager<User> userManager)
         {
             _appDbContext = appDbContext;
             _userManager = userManager;
         }
-        private async Task<bool> IsCurrentUserInRole(string role)
-        {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                return false;
-            }
-
-            return await _userManager.IsInRoleAsync(user, role);
-        }
+      
         public record ChangeStatusRequest(string UserId, string ProblemId, string NewStatus);
 
         [HttpPatch("ChangeStatus")]
         public async Task<IActionResult> ChangeStatus([FromBody] ChangeStatusRequest request)
         {
-            if (!await IsCurrentUserInRole(ADMINISTRATOR))
-            {
-                return  BadRequest("У вас нет доступа для этой операции.");
-            }
+       
 
-            var problem = await _appDbContext.Problems
+            var problem = await _appDbContext.Problem
                 .FirstOrDefaultAsync(p => p.Id == request.ProblemId && p.UserId == request.UserId);
 
             if (problem == null)
@@ -56,12 +44,9 @@ namespace SweethomeAPI.Controllers
         [HttpGet("GetAllProblems")]
         public async Task<IActionResult> GetAllProblems()
         {
-            if (!await IsCurrentUserInRole(ADMINISTRATOR))
-            {
-                return BadRequest("У вас нет доступа для этой операции.");
-            }
+         
 
-            var result = await _appDbContext.Problems.ToListAsync();
+            var result = await _appDbContext.Problem.ToListAsync();
                 
 
             return Ok(result);

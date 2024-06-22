@@ -1,11 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Sweethome.Domain;
-using SweetHome.DAL;
 using SweetHome.DAL.Interfaces;
-using SweetHome.DAL.Repos;
 
 namespace SweethomeAPI.Controllers
 {
@@ -15,10 +11,12 @@ namespace SweethomeAPI.Controllers
 
 
         private readonly IBaseRepository<Problem> _baseRepository;
+        private readonly ILogger<ProblemController> _logger;
 
-        public ProblemController(IBaseRepository<Problem> baseRepository)
+        public ProblemController(IBaseRepository<Problem> baseRepository, ILogger<ProblemController> logger)
         {
             _baseRepository = baseRepository;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
 
@@ -27,26 +25,44 @@ namespace SweethomeAPI.Controllers
         [HttpPost("createproblem")]
         public async Task<IActionResult> CreateProblemByUserId([FromBody] CreateProblem createProblem)
         {
+            if (string.IsNullOrEmpty(createProblem.UserId))
+            {
+                _logger.LogWarning("UserId is null or empty.");
+                return BadRequest("UserId is null or empty.");
+            }
+
+            if (createProblem == null)
+            {
+                _logger.LogWarning("CreateProblem request body is null.");
+                return BadRequest("Request body is null.");
+            }
+
+           
             var problem = new Problem()
             {
                 Problems = createProblem.Problem,
                 Description = createProblem.Description,
                 DateOfsolution = createProblem.DateOfSolution,
                 UserId = createProblem.UserId,
-               
-
             };
 
-            var result = await _baseRepository
-                .CreateAsync(problem);
 
-            if (result != null)
+            try
             {
+                var result = await _baseRepository.CreateAsync(problem);
 
-                return Ok(new { userProblem = result.ToString() });
+                if (result != null)
+                {
+                    return Ok(new { userProblem = result.ToString() });
+                }
+
+                return Unauthorized();
             }
-
-            return Unauthorized();
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while creating a problem.");
+                return StatusCode(500, "Internal server error");
+            }
         }
     }
 }

@@ -45,16 +45,32 @@ public class UserController: ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginModel loginModel)
     {
+       
         var result = await _signInManager.PasswordSignInAsync(loginModel.UserName, loginModel.Password, true, false);
         var currentUserId = await _appDbContext.Users
             .Where(x => x.UserName == $"{loginModel.UserName}")
             .Select(x => x.Id)
-            .ToListAsync();
+            .FirstOrDefaultAsync();
+        var currentUser = await _userManager.FindByNameAsync(loginModel.UserName);
+
+        if (currentUser == null)
+        {
+            return Unauthorized();
+        }
+
+        bool administrator = await _userManager.IsInRoleAsync(currentUser, "admin");
+
+        var loginResult = new
+        {
+            userId = currentUserId,
+            isAdministrator = administrator
+        };
 
         if (result.Succeeded)
         {
-            return Ok(new { userid = currentUserId });
+            return Ok(new { loginResult.userId, loginResult.isAdministrator });
         }
+
 
         return Unauthorized();
     }
@@ -89,7 +105,7 @@ public class UserController: ControllerBase
             }
             await _userManager.AddToRoleAsync(user, registerModel.Role);
              
-            return Ok(new { userId = currentUserId });
+            return Ok(new { userId = currentUserId});
 
         }
         else
